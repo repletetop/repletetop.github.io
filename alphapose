@@ -1,0 +1,37 @@
+Alpha Pose 中Pose flow中deep matching在Ubuntu下的安装方法
+
+在Alpha pose中使用了poseflow进行pose tracking，而poseflow中在匹配的过程中使用了deep matching进行匹配。deep matching原本在fedora下配置，在Ubuntu下安装时会遇到各种问题，下面介绍其在Ubuntu下的编译安装方法。
+
+1：atlas：在makefile中由关于libsatlas.so的路径，这里显然有问题，因为按照安装caffe时安装atlas的方法：
+
+sudo apt-get install libatlas_dev
+
+sudo apt-get install libatlas_base_dev
+
+是不会有libsatlas.so文件的。此时，切换到/usr/lib路径下，执行以下命令合成一个：
+
+sudo ld -shared -o libsatlas.so \
+
+--whole-archive libatlas.a liblapack.a \
+
+--no-whole-archive libf77blas.a libcblas.a
+
+之后修改路径为LAPACKLDFLAGS=/usr/lib/libsatlas.so，解决atlas的问题.
+
+2：此时编译可能会出现关于gfortran的未定义的引用（undefiened reference）等各种问题，解决方法：
+
+修改第24行的all: deepmatching，为all: deepmatching-static：静态编译
+
+并修改以下静态链接的地址，我的地址如下，请确保安装了所有的库，并且路径正确，特别是libgfortran.a,libquadmath.a的路径在gcc下面，请务必找到对应的文件
+
+STATICLAPACKLDFLAGS=-fPIC -Wall -g -fopenmp -static -static-libstdc++ /usr/lib/x86_64-linux-gnu/libjpeg.a /usr/lib/x86_64-linux-gnu/libpng.a /usr/lib/x86_64-linux-gnu/libz.a /usr/lib/libblas.a /usr/lib/gcc/x86_64-linux-gnu/5/libgfortran.a /usr/lib/gcc/x86_64-linux-gnu/5/libquadmath.a
+
+之后编译应该不会有太大的问题
+
+如有其他问题，可参考以下链接：
+
+http://zeng.photography/blog/compile-deep-matching-on-ubuntu-14-dot-04/
+
+http://xiuyuliang.cn/2014/12/05/deepmatching/
+
+https://blog.csdn.net/xczexcel/article/details/79574740
